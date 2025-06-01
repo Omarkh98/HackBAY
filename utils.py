@@ -1,6 +1,7 @@
 import os
 import json
 import importlib
+import re
 
 def load_tool_metadata(folder_path):
     metadata = {}
@@ -35,3 +36,18 @@ def build_tool_render_map(metadata_dict: dict) -> dict:
         except (ImportError, AttributeError, ModuleNotFoundError) as e:
             print(f"[WARN] Skipping render for {tool_id}: {e}")
     return renders
+
+def extract_python_filename(text: str) -> str | None:
+    """
+    Extracts a .py filename or relative path from user input.
+
+    Supports:
+    - filenames like `main.py`
+    - relative paths like `tools/some_tool/main.py`
+    """
+    # Match either "main.py" or "tools/some_tool/main.py"
+    pattern = r"([\w\-/\\]+\.py)"
+    match = re.search(pattern, text)
+    if match:
+        return match.group(1).strip()
+    return None

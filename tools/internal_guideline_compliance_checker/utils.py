@@ -4,7 +4,14 @@ import os
 import json
 import importlib
 
-def print_violations(violations: list[dict]):
+def print_violations(violations: list[dict], file=None):
+    """
+    Prints formatted compliance violations to stdout or a file-like object.
+    
+    Args:
+        violations (list[dict]): List of violation dictionaries.
+        file: Optional file-like object (e.g., StringIO) to write to.
+    """
     seen = set()
     for v in violations:
         key = (v["id"], v["message"], v.get("line", 0))
@@ -12,7 +19,7 @@ def print_violations(violations: list[dict]):
             continue
         seen.add(key)
         line_info = f"Line {v.get('line', '?')}"
-        print(f"- {v['id']} ({line_info}): {v['message']}")
+        print(f"- {v['id']} ({line_info}): {v['message']}", file=file)
 
 def apply_compliance_rules_with_count(code: str):
     tree = ast.parse(code)

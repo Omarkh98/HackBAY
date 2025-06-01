@@ -1,12 +1,21 @@
-# core/router.py
-
 from openai import OpenAI
 import json
 from dotenv import load_dotenv
 load_dotenv()
 import os
+import re
 
 client = OpenAI()
+
+def clean_user_prompt(prompt: str) -> str:
+    """
+    Remove file paths (e.g., tools/.../*.py) from the user prompt to improve tool matching.
+    """
+    # Regex to remove relative paths with .py files, e.g. tools/library_license_checker/config/license_map.py
+    cleaned = re.sub(r'\b[\w./-]*\.py\b', '', prompt)
+    # Also remove multiple spaces
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    return cleaned
 
 def route_to_tool(user_prompt: str, metadata_dict: dict) -> str:
     """
@@ -23,9 +32,12 @@ def route_to_tool(user_prompt: str, metadata_dict: dict) -> str:
         for name, meta in metadata_dict.items()
     ]
 
+    # Clean the user prompt to remove file paths
+    cleaned_prompt = clean_user_prompt(user_prompt)
+
     messages = [
         {"role": "system", "content": "You are an AI assistant that selects the best tool for a given developer task."},
-        {"role": "user", "content": f"""User request: {user_prompt}
+        {"role": "user", "content": f"""User request: {cleaned_prompt}
 
 Available tools:
 {json.dumps(tools, indent=2)}

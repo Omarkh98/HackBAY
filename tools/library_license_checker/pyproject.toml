@@ -1,2 +1,0 @@
-[project.scripts]
-check-licenses = "main:check_licenses"

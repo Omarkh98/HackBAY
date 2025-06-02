@@ -1,0 +1,11 @@
+pytest
+streamlit
+openai
+python-dotenv
+importlib
+requests
+flask
+numpy
+pandas
+scikit-learn
+xlsxwriter

@@ -9,17 +9,98 @@ of imported packages against known standard libraries and aliases.
 import os
 import requests
 from dotenv import load_dotenv
-from devguard.tools.library_license_checker.helpers import (normalize_license_text,
-                             rate_license,
-                             fetch_license_from_pypi)
+from devguard.tools.library_license_checker.license_utils import (rate_license,
+                           fetch_license_from_pypi)
+from devguard.tools.library_license_checker.normalization import normalize_license_text
 
 from devguard.tools.library_license_checker.config.license_map import (STANDARD_LIBS,
                                 PACKAGE_ALIASES)
+
+from tools.library_license_checker.config.java_aliases import (KNOWN_GOOD_JAVA_VERSIONS,
+                                 TRUSTED_LICENSES)
+
+import xml.etree.ElementTree as ET
 
 load_dotenv()
 
 API_KEY = os.getenv("LIBRARIES_IO_API_KEY")
 BASE_URL = "https://libraries.io/api"
+
+def fetch_java_license(group: str, artifact: str, version: str) -> str:
+    """
+    Fetch license info for a Java dependency by downloading and parsing its POM file from Maven Central.
+    Falls back to a known stable version if the 'latest' version does not contain license info.
+
+    Args:
+        group (str): Maven groupId (e.g., "com.fasterxml.jackson.core")
+        artifact (str): Maven artifactId (e.g., "jackson-databind")
+        version (str): Version string (e.g., "2.19.0" or "latest")
+
+    Returns:
+        str: Normalized license name or "Unknown"
+    """
+    # Resolve latest version if needed
+    original_version = version
+    if version == "latest":
+        try:
+            url = f"https://search.maven.org/solrsearch/select?q=g:{group}+AND+a:{artifact}&rows=1&wt=json"
+            response = requests.get(url)
+            data = response.json()
+            docs = data.get("response", {}).get("docs", [])
+            if docs:
+                version = docs[0].get("latestVersion", "Unknown")
+            else:
+                return "Unknown"
+        except Exception as e:
+            print(f"[ERROR] Failed to fetch latest version for {group}:{artifact}: {e}")
+            return "Unknown"
+
+    def fetch_license_for_version(ver: str) -> str:
+        group_path = group.replace('.', '/')
+        pom_url = f"https://repo1.maven.org/maven2/{group_path}/{artifact}/{ver}/{artifact}-{ver}.pom"
+
+        try:
+            response = requests.get(pom_url)
+            if response.status_code != 200:
+                return "Unknown"
+            
+            root = ET.fromstring(response.content)
+            # Strip namespaces
+            for elem in root.iter():
+                if '}' in elem.tag:
+                    elem.tag = elem.tag.split('}', 1)[1]
+            licenses = root.findall('.//licenses/license/name')
+            if licenses:
+                print("[DEBUG] Raw license names found:", [lic.text for lic in licenses if lic.text])
+                license_names = [normalize_license_text(lic.text) for lic in licenses if lic.text]
+                known_licenses = [lic for lic in license_names if lic != "Unknown"]
+                
+                if known_licenses:
+                    return " / ".join(sorted(set(known_licenses)))
+                else:
+                    return "Unknown"
+            else:
+                coord = f"{group}:{artifact}"
+                if coord in TRUSTED_LICENSES:
+                    return normalize_license_text(TRUSTED_LICENSES[coord])
+                return "Unknown"
+
+        except Exception as e:
+            print(f"[ERROR] Failed to fetch/parse POM for {group}:{artifact}:{ver}: {e}")
+            return "Unknown"
+
+    # First attempt
+    license_name = fetch_license_for_version(version)
+    if license_name != "Unknown":
+        return license_name
+
+    # Try fallback if defined
+    coord = f"{group}:{artifact}"
+    fallback_version = KNOWN_GOOD_JAVA_VERSIONS.get(coord)
+    if fallback_version and fallback_version != version:
+        return fetch_license_for_version(fallback_version)
+
+    return "Unknown"
 
 def fetch_license(package_name: str, platform = "pypi"):
     """
@@ -97,9 +178,11 @@ def check_imported_packages_licenses(imports: list[str]) -> list[dict]:
     results = []
     for package in imports:
         actual_pkg = PACKAGE_ALIASES.get(package, package)
+
+        base_pkg = get_base_module_name(actual_pkg)
         
-        if actual_pkg in STANDARD_LIBS:
-            license_name = STANDARD_LIBS[actual_pkg]
+        if base_pkg in STANDARD_LIBS:
+            license_name = STANDARD_LIBS[base_pkg]
             license_info = {
                 "name": package,
                 "license": license_name,
@@ -110,3 +193,7 @@ def check_imported_packages_licenses(imports: list[str]) -> list[dict]:
             license_info["name"] = package
         results.append(license_info)
     return results
+
+def get_base_module_name(name: str) -> str:
+    """Return the top-level module name (e.g., 'os.path' → 'os')"""
+    return name.split('.')[0]

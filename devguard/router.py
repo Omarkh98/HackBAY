@@ -2,7 +2,6 @@ from openai import OpenAI
 import json
 from dotenv import load_dotenv
 load_dotenv()
-import os
 import re
 
 client = OpenAI()
@@ -28,6 +27,7 @@ def route_to_tool(user_prompt: str, metadata_dict: dict) -> str:
         {
             "name": name,
             "description": meta.get("description", ""),
+            "keywords": meta.get("keywords", [])
         }
         for name, meta in metadata_dict.items()
     ]
@@ -35,9 +35,19 @@ def route_to_tool(user_prompt: str, metadata_dict: dict) -> str:
     # Clean the user prompt to remove file paths
     cleaned_prompt = clean_user_prompt(user_prompt)
 
+    if any(kw in cleaned_prompt for kw in ["compliance", "guideline", "coding standard", "best practice", "style violation"]):
+        return "internal_guideline_compliance_checker"
+    
+    if any(kw in cleaned_prompt for kw in ["license", "licensing", "dependency", "third-party"]):
+        return "library_license_checker"
+
     messages = [
-        {"role": "system", "content": "You are an AI assistant that selects the best tool for a given developer task."},
-        {"role": "user", "content": f"""User request: {cleaned_prompt}
+        {"role": "system", "content":
+            "You are an AI assistant that selects the best tool for a given developer task. "
+            "Each tool is described by its purpose and associated keywords. Choose the tool whose "
+            "intent best matches the user's request, based on meaning and context."},
+        {"role": "user", 
+            "content": f"""User request: {cleaned_prompt}
 
 Available tools:
 {json.dumps(tools, indent=2)}

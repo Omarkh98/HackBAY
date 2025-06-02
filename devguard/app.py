@@ -32,4 +32,5 @@ with col1:
     
 with col2:
     st.markdown(f"### 🚀 {tool_options[selected_tool_id]}")
-    TOOL_RENDER[selected_tool_id]()  # Dynamically renders tool UI
+    st.info(f"🛠 Currently using: `{selected_tool_id}`")
+    TOOL_RENDER[selected_tool_id]()

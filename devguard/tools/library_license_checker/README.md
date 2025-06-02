@@ -1,38 +1,52 @@
 # Library License Checker
 
-A Python tool to analyze third-party libraries imported in your code, retrieve their license information, and rate them based on legal risk. Useful for legal audits, open-source compliance, and responsible code usage.
+A multi-language tool to analyze third-party libraries or dependencies used in your source code, retrieve their license information, and rate them based on legal risk. Useful for legal audits, open-source compliance, and responsible code usage.
 
 ---
 
 ## Features
 
-- Parses `.py` files to extract all imported libraries.
-- Queries license info using PyPI and fallback mechanisms.
+- Parses `.py`, `.java`, and `.xml` files to extract imported libraries or declared dependencies.
+- Queries license information using:
+  - PyPI for Python packages
+  - Maven Central for Java dependencies (if defined)
+  - XML parsing for dependencies declared in config files (e.g., Maven POMs)
 - Normalizes and rates licenses by legal risk:
-  - ✅ Trusted - Safe for most uses (MIT, BSD, Apache)
-  - ⚠️ Caution - Use carefully, may impose conditions (LGPL, MPL)
-  - ❌ Risky - Strong copyleft or unknown terms (GPL, AGPL, Unknown)
+  - ✅ **Trusted** – Safe for most uses (MIT, BSD, Apache)
+  - ⚠️ **Caution** – Use carefully, may impose conditions (LGPL, MPL)
+  - ❌ **Risky** – Strong copyleft or unknown terms (GPL, AGPL, Unknown)
 - CLI and Streamlit-based interface for flexible usage.
 - Supports Excel export for legal documentation or compliance sharing.
 - Easily integrates with LLMs or CI/CD pipelines.
 - CLI-invokable and Python-callable.
 
+## Supported Languages & File Types
+
+| Language | File Types   | Parsed Dependencies                          |
+|----------|--------------|-----------------------------------------------|
+| Python   | `.py`        | `import` and `from ... import ...` statements |
+| Java     | `.java`      | `import` statements                           |
+| XML      | `.xml`       | `<dependency>`, `<groupId>`, `<artifactId>` from Maven-style XML |
+
+
 ## Usage
 Run the checker from the command line:
 
 ```bash
-python main.py <python_file.py> [options]
+python main.py <path.py> [options]
 ```
 
-Where `<python_file.py>` is the Python file to scan.
+Where `<path>` is a path to a .py, .java, or .xml file.
 
 ### Command Line Options
 1. **--export**, **-e**: Export license results to an Excel file named `license_check_results.xlsx`.
 
 ## Examples
-1. Check a file and print library license results:
+1. Check a Python, Java, or XML file and print results:
 ```bash
 python main.py path/to/file.py
+python main.py path/to/file.java
+python main.py path/to/pom.xml
 ```
 2. Check a file and export results to Excel:
 ```bash
@@ -43,6 +57,7 @@ python main.py path/to/file.py --export
 Use the visual frontend to upload and check `.py` files interactively:
 ```bash
 streamlit run app.py
+streamlit run app.py --server.enableXsrfProtection=false
 ```
 
 ## LLM Calable Function

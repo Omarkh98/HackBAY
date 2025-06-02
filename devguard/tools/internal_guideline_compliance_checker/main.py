@@ -6,26 +6,26 @@ from datetime import datetime
 from devguard.tools.internal_guideline_compliance_checker.utils import (
     apply_compliance_rules_with_count,
     print_violations,
-    gather_py_files,
+    gather_supported_files,
     generate_markdown_report,
 )
 
-def check_compliance(
-    path: str,
-    output_format: str = "text",  # Options: "text", "json", "summary", "markdown"
-) -> str | list[dict]:
-    py_files = gather_py_files(path)
-    if not py_files:
-        return f"No Python files found at path: {path}"
+def check_compliance(path: str, output_format: str = "text") -> str | list[dict]:
+    files = gather_supported_files(path)
+    if not files:
+        return f"No supported files (.py, .java, .xml) found at path: {path}"
 
     all_violations = []
     total_functions = 0
 
-    for file_path in py_files:
+    for file_path in files:
+        _, ext = os.path.splitext(file_path)
+        filetype = ext[1:]  # e.g. "py", "java", "xml"
+
         with open(file_path, "r", encoding="utf-8") as f:
             code = f.read()
 
-        violations, function_count = apply_compliance_rules_with_count(code)
+        violations, function_count = apply_compliance_rules_with_count(code, filetype)
         for v in violations:
             v["file"] = file_path
         all_violations.extend(violations)
@@ -36,13 +36,13 @@ def check_compliance(
 
     elif output_format == "summary":
         return (
-            f"Files checked: {len(py_files)}\n"
-            f"Functions checked: {total_functions}\n"
+            f"Files checked: {len(files)}\n"
+            f"Functions/configs checked: {total_functions}\n"
             f"Violations found: {len(all_violations)}"
         )
 
     elif output_format == "markdown":
-        return generate_markdown_report(all_violations, py_files, total_functions)
+        return generate_markdown_report(all_violations, files, total_functions)
 
     else:  # default to human-readable text
         if all_violations:
@@ -53,11 +53,8 @@ def check_compliance(
         else:
             return "✅ All checks passed. No violations found."
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Check internal guideline compliance for Python file(s)."
-    )
+    parser = argparse.ArgumentParser(description="Check internal guideline compliance for Python, Java, or XML files.")
     parser.add_argument("path", type=str, help="Path to Python file or directory to check.")
     parser.add_argument("--json", "-j", action="store_true", help="Output violations as JSON")
     parser.add_argument("--summary", "-s", action="store_true", help="Output a summary only")
@@ -105,6 +102,7 @@ def main():
 
     else:  # text
         print(result)
+
 
 if __name__ == "__main__":
     main()

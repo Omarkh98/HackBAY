@@ -7,7 +7,7 @@ from devguard.router import route_to_tool
 from devguard.router import route_to_tool
 from devguard.utils import (load_tool_metadata,
                    build_tool_function_map,
-                   extract_python_filename) 
+                   extract_any_supported_filename)
 from dotenv import load_dotenv
 import streamlit as st
 import tempfile
@@ -43,7 +43,7 @@ def render_chat_interface():
                 dirs[:] = [d for d in dirs if d not in ignored_dirs]
 
                 for file in files:
-                    if file.endswith(".py"):
+                    if file.endswith((".py", ".java", ".xml")):
                         relative_path = os.path.relpath(os.path.join(root, file), ALLOWED_FILE_DIR)
                         py_files.append(relative_path)
 
@@ -51,7 +51,7 @@ def render_chat_interface():
                 for file in sorted(py_files):
                     st.markdown(f"- `{file}`")
             else:
-                st.info("No `.py` files found in the project directory.")
+                st.info("No `.py`, `.java`, or `.xml` files found in the project directory.")
         except Exception as e:
             st.error(f"Error reading directory: {e}")
 
@@ -68,7 +68,8 @@ def render_chat_interface():
             return
 
         # Extract filename from chat input
-        filename = extract_python_filename(user_input)
+        filename = extract_any_supported_filename(user_input)
+
         if filename:
             potential_path = os.path.join(ALLOWED_FILE_DIR, filename)
             if os.path.isfile(potential_path):
@@ -91,7 +92,13 @@ def render_chat_interface():
                 if isinstance(result, str):
                     st.chat_message("ai").markdown(f"```text\n{result}\n```")
                 elif isinstance(result, list):
-                    st.chat_message("ai").json(result)
+                    if st.session_state.last_tool == "library_license_checker":
+                        import pandas as pd
+                        df = pd.DataFrame(result)
+                        df.columns = [col.capitalize() for col in df.columns]
+                        st.chat_message("ai").dataframe(df, use_container_width=True)
+                    else:
+                        st.chat_message("ai").json(result)
                 else:
                     st.chat_message("ai").write(str(result))
 
@@ -123,8 +130,8 @@ def render_chat_interface():
     # Tool matched → enable file upload
     if st.session_state.selected_tool:
         uploaded_files = st.file_uploader(
-            "Upload Python file(s) to analyze",
-            type=["py"],
+            "Upload file(s) to analyze",
+            type=["py", "java", "xml"],
             accept_multiple_files=True
         )
 
@@ -132,7 +139,7 @@ def render_chat_interface():
             results = []
             with st.spinner(f"Running `{st.session_state.selected_tool}` on {len(uploaded_files)} file(s)..."):
                 for uploaded_file in uploaded_files:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".py") as tmp:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix = os.path.splitext(uploaded_file.name)[-1]) as tmp:
                         tmp.write(uploaded_file.read())
                         temp_path = tmp.name
 

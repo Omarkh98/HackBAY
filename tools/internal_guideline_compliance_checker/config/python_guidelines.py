@@ -1,5 +1,5 @@
 """
-File name: config/guidelines.py
+File name: config/python_guidelines.py
 
 Description: Defines compliance rules for internal coding standards.
 Each rule is a dictionary containing an ID, description, and AST-based checker function.
@@ -7,6 +7,9 @@ Each rule is a dictionary containing an ID, description, and AST-based checker f
 
 import ast
 from typing import Callable
+
+TREE_LEVEL_RULES = []
+NODE_LEVEL_RULES = []
 
 ComplianceRule = dict[str, str | Callable[[ast.FunctionDef], list[str]]]
 

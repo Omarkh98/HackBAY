@@ -1,17 +1,10 @@
-from tools.internal_guideline_compliance_checker.compliance_checker import apply_compliance_rules
-import ast
+from tools.internal_guideline_compliance_checker.compliance_checker import (apply_python_compliance_rules,
+                                apply_java_compliance_rules,
+                                apply_xml_compliance_rules)
 import os
-import json
-import importlib
+import sys
 
-def print_violations(violations: list[dict], file=None):
-    """
-    Prints formatted compliance violations to stdout or a file-like object.
-    
-    Args:
-        violations (list[dict]): List of violation dictionaries.
-        file: Optional file-like object (e.g., StringIO) to write to.
-    """
+def print_violations(violations: list[dict], file=sys.stdout):
     seen = set()
     for v in violations:
         key = (v["id"], v["message"], v.get("line", 0))
@@ -20,27 +13,33 @@ def print_violations(violations: list[dict], file=None):
         seen.add(key)
         line_info = f"Line {v.get('line', '?')}"
         print(f"- {v['id']} ({line_info}): {v['message']}", file=file)
+        
+def apply_compliance_rules_with_count(code: str, filetype: str = "py") -> tuple[list[dict], int]:
+    if filetype == "py":
+        violations = apply_python_compliance_rules(code)
+        function_count = code.count("def ")
+    elif filetype == "java":
+        violations = apply_java_compliance_rules(code)
+        function_count = code.count("void ") + code.count("public ") + code.count("private ")
+    elif filetype == "xml":
+        violations = apply_xml_compliance_rules(code)
+        function_count = 1
+    else:
+        violations = [{"id": "UNSUPPORTED", "message": f"Unsupported file type: {filetype}", "line": 0}]
+        function_count = 0
 
-def apply_compliance_rules_with_count(code: str):
-    tree = ast.parse(code)
-    # Count functions in the code
-    function_count = sum(isinstance(node, ast.FunctionDef) for node in ast.walk(tree))
-    violations = apply_compliance_rules(code)
     return violations, function_count
 
-
-def gather_py_files(path: str) -> list[str]:
-    if os.path.isfile(path) and path.endswith(".py"):
-        return [path]
+def gather_supported_files(path: str, extensions: tuple[str, ...] = (".py", ".java", ".xml")) -> list[str]:
+    files = []
+    if os.path.isfile(path) and path.endswith(extensions):
+        files.append(path)
     elif os.path.isdir(path):
-        py_files = []
-        for root, _, files in os.walk(path):
-            for file in files:
-                if file.endswith(".py"):
-                    py_files.append(os.path.join(root, file))
-        return py_files
-    else:
-        return []
+        for root, _, filenames in os.walk(path):
+            for fname in filenames:
+                if fname.endswith(extensions):
+                    files.append(os.path.join(root, fname))
+    return files
     
 def generate_markdown_report(violations: list[dict], py_files, total_functions: int) -> str:
     md = f"# Internal Guidelines Compliance Report\n\n"
@@ -57,37 +56,3 @@ def generate_markdown_report(violations: list[dict], py_files, total_functions: 
     for v in violations:
         md += f"| {v.get('file', 'N/A')} | {v['line']} | {v['message']} |\n"
     return md
-
-def load_tool_metadata(folder_path):
-    metadata = {}
-    for filename in os.listdir(folder_path):
-        if filename.endswith(".json"):
-            path = os.path.join(folder_path, filename)
-            with open(path, "r") as f:
-                data = json.load(f)
-                tool_id = data["name"]
-                metadata[tool_id] = data
-    return metadata
-
-def load_function(module_path: str, func_name: str):
-    """Dynamically import and return a function from a module."""
-    module = importlib.import_module(module_path)
-    return getattr(module, func_name)
-
-def build_tool_function_map(metadata_dict):
-    tool_functions = {}
-    for tool_id, meta in metadata_dict.items():
-        module_path = meta["entry_point"].replace(".py", "").replace("/", ".")
-        fn_name = meta["functions"][0]["name"]  # assuming one main function per tool
-        tool_functions[tool_id] = load_function(module_path, fn_name)
-    return tool_functions
-
-def build_tool_render_map(metadata_dict: dict) -> dict:
-    renders = {}
-    for tool_id in metadata_dict:
-        try:
-            render_func = load_function(f"tools.{tool_id}.ui", "render")
-            renders[tool_id] = render_func
-        except (ImportError, AttributeError, ModuleNotFoundError) as e:
-            print(f"[WARN] Skipping render for {tool_id}: {e}")
-    return renders

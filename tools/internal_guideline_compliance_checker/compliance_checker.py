@@ -1,7 +1,10 @@
 import ast
-from tools.internal_guideline_compliance_checker.config.guidelines import NODE_LEVEL_RULES, TREE_LEVEL_RULES
+import xml.etree.ElementTree as ET
+from tools.internal_guideline_compliance_checker.config.python_guidelines import NODE_LEVEL_RULES, TREE_LEVEL_RULES
+from tools.internal_guideline_compliance_checker.config.java_guidelines import JAVA_NODE_LEVEL_RULES, JAVA_TREE_LEVEL_RULES
+from tools.internal_guideline_compliance_checker.config.xml_guidelines import XML_TREE_LEVEL_RULES, XML_NODE_LEVEL_RULES
 
-def apply_compliance_rules(code: str) -> list[dict]:
+def apply_python_compliance_rules(code: str) -> list[dict]:
     try:
         tree = ast.parse(code)
     except SyntaxError as e:
@@ -45,5 +48,56 @@ def apply_compliance_rules(code: str) -> list[dict]:
                     "message": message,
                     "line": line,
                 })
+                
+    return violations
+
+def apply_java_compliance_rules(code: str) -> list[dict]:
+    violations = []
+
+    for rule_fn in JAVA_TREE_LEVEL_RULES:
+        results = rule_fn(code)
+        for line, message in results:
+            violations.append({
+                "id": rule_fn.__name__,
+                "message": message,
+                "line": line,
+            })
+
+    for rule_fn in JAVA_NODE_LEVEL_RULES:
+        results = rule_fn(code)
+        for line, message in results:
+            violations.append({
+                "id": rule_fn.__name__,
+                "message": message,
+                "line": line,
+            })
+
+    return violations
+
+def apply_xml_compliance_rules(code: str) -> list[dict]:
+    violations = []
+
+    try:
+        tree = ET.ElementTree(ET.fromstring(code))
+    except ET.ParseError as e:
+        return [{"id": "XML_SYNTAX", "message": f"XML ParseError: {e}", "line": 0}]
+
+    for rule_fn in XML_TREE_LEVEL_RULES:
+        results = rule_fn(tree)
+        for line, message in results:
+            violations.append({
+                "id": rule_fn.__name__,
+                "message": message,
+                "line": line,
+            })
+
+    for rule_fn in XML_NODE_LEVEL_RULES:
+        results = rule_fn(code)
+        for line, message in results:
+            violations.append({
+                "id": rule_fn.__name__,
+                "message": message,
+                "line": line,
+            })
 
     return violations

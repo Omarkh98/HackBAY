@@ -1,0 +1,2 @@
+[project.scripts]
+check-compliance = "main:check_compliance"

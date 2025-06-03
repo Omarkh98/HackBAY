@@ -68,6 +68,12 @@ streamlit run app.py
 streamlit run app.py --server.enableXsrfProtection=false
 ```
 
+```
+pipx install ./ --force
+pipx ensurepath
+source ~/.zshrc 
+```
+
 ## Adding New Tools
 
 To contribute a new tool:

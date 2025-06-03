@@ -1,0 +1,42 @@
+# devguard_ai/pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0"] # Minimum version of setuptools
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devguard-cli" # The name of your package on PyPI (if you were to publish)
+version = "0.1.0" # Your CLI's version
+description = "DevGuard AI CLI: Your intelligent compliance and sustainability co-pilot."
+readme = "README.md" # Optional: if you have a README.md
+requires-python = ">=3.8" # Specify your minimum Python version
+license = {text = "MIT"} # Or your chosen license
+authors = [
+    {name = "Your Name", email = "you@example.com"}, # Replace with your details
+]
+dependencies = [
+    "typer[all]>=0.9.0", # Make sure to list Typer
+    "requests>=2.25.0",  # And requests
+    "openai",
+    "dotenv",
+    # Add any other direct dependencies your devguard_cli.py script has
+    # Do NOT list your backend FastAPI dependencies here unless the CLI directly imports them
+    # and they are not just accessed via HTTP API.
+]
+
+# This part tells setuptools how to find your package(s)
+[tool.setuptools.packages.find]
+where = ["."]  # Look for packages in the current directory (where pyproject.toml is)
+include = ["devguard*"] # Include the 'devguard' package and its sub-packages (like devguard.frontend)
+# exclude = [] # e.g., ["tests*"] if you have a top-level tests directory
+
+[project.scripts]
+# This is the crucial part for creating the system-wide command
+# It means: create a command named 'devguard' that, when run,
+# will execute the 'app' object (your Typer app) found in the
+# 'devguard_cli' Python module (which corresponds to devguard_cli.py).
+devguard = "devguard.devguard_cli:app"
+
+# If your CLI script was inside a package, e.g., src/devguard_pkg/cli.py
+# and app was defined in cli.py, it would be:
+# devguard = "devguard_pkg.cli:app"

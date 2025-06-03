@@ -8,7 +8,7 @@ across different sources before evaluating their trustworthiness.
 
 import ast
 import os
-from tools.library_license_checker.config.java_aliases import JAVA_IMPORT_ALIASES
+from devguard.tools.library_license_checker.config.java_aliases import JAVA_IMPORT_ALIASES
 import xml.etree.ElementTree as ET
 import requests
 

@@ -11,7 +11,7 @@ Designed to be CLI-invokable and LLM-callable.
 import os
 import argparse
 import pandas as pd
-from devguard.tools.library_license_checker.helpers import (extract_imports,
+from devguard.tools.library_license_checker.helpers import (extract_java_imports,
                                                    print_license_report)
 from devguard.tools.library_license_checker.license_api import fetch_license
 

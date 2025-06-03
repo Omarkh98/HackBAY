@@ -4,7 +4,7 @@ import tempfile
 import os
 import io
 
-from devguard.tools.library_license_checker.helpers import extract_imports
+from devguard.tools.library_license_checker.helpers import extract_java_imports
 from devguard.tools.library_license_checker.license_api import fetch_license
 
 def render():

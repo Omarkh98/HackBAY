@@ -32,9 +32,15 @@ def check_compliance(path: str, output_format: str = "text") -> str | list[dict]
         total_functions += function_count
 
     if output_format == "json":
+        print(all_violations)
         return all_violations
 
     elif output_format == "summary":
+        print (
+            f"Files checked: {len(files)}\n"
+            f"Functions/configs checked: {total_functions}\n"
+            f"Violations found: {len(all_violations)}"
+        )
         return (
             f"Files checked: {len(files)}\n"
             f"Functions/configs checked: {total_functions}\n"

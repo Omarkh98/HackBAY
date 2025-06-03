@@ -11,9 +11,12 @@ Designed to be CLI-invokable and LLM-callable.
 import os
 import argparse
 import pandas as pd
-from devguard.tools.library_license_checker.helpers import (extract_java_imports,
-                                                   print_license_report)
-from devguard.tools.library_license_checker.license_api import fetch_license
+from devguard.tools.library_license_checker.helpers import (print_license_report,
+                                                            check_java_import_file,
+                                                            check_java_licenses,
+                                                            check_python_licenses,
+                                                            deduplicate_license_results)
+from devguard.tools.library_license_checker.pom_parser import is_parent_pom
 
 def check_licenses(file_path: str, export: bool = False, output_path: str = "license_report.xlsx"):
     """

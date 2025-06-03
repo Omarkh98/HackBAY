@@ -9,6 +9,8 @@ from tools.internal_guideline_compliance_checker.main import check_compliance
 from file_event_queue import file_event_queue
 
 load_dotenv()
+
+
 ALLOWED_FILE_DIR = os.getenv("ALLOWED_FILE_DIR", ".")
 
 observer_instance = None  # Global to prevent re-adding

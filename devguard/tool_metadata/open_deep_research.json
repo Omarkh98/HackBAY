@@ -1,0 +1,32 @@
+{
+  "name": "deep_research_tool",
+  "display_name": "Deep Research Tool",
+  "description": "Conducts deep research on a given DATEV guideline, policy, or software-rule topic and returns a structured report.",
+  "keywords": [
+    "deep research",
+    "guideline",
+    "policy",
+    "compliance",
+    "DATEV",
+    "internal rules",
+    "license",
+    "security",
+    "data protection"
+  ],
+  "input_type": "string",
+  "output_type": "file_path",
+  "entry_point": "devguard/tools/deep-research/open_deep_research-main/src/open_deep_research/main.py",
+  "functions": [
+    {
+      "name": "run_research",
+      "description": "Takes a topic string and returns the path to a Markdown file containing the research report.",
+      "arguments": {
+        "topic": "The guideline, policy, or software-rule topic to research (string)"
+      },
+      "returns": {
+        "type": "string",
+        "description": "Filesystem path to the saved Markdown report, or an error message beginning with [ERROR]."
+      }
+    }
+  ]
+}

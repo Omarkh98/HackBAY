@@ -17,12 +17,25 @@ tool_options = {
 
 # Sidebar selection
 st.set_page_config(page_title="🧠 AI Dev Toolkit", layout="wide")
-st.sidebar.title("🧰 Tool Selector")
-selected_display_name = st.sidebar.radio("Choose a tool:", list(tool_options.values()))
-selected_tool_id = next(tid for tid, dname in tool_options.items() if dname == selected_display_name)
+
+st.markdown("""
+    <style>
+        html {
+            font-size: 12px;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Page layout
-st.title("🧠 Developer Productivity Toolkit")
+st.title("DevHero 🦸🏼‍♀️")
+
+
+options = list(tool_options.values())
+selection = st.pills("Available Agents", options, selection_mode="multi")
+if selection:
+    selected_tool_id = (tid for tid, dname in tool_options.items() if dname == selection)
 
 col1, col2 = st.columns([2, 1])
 
@@ -30,7 +43,3 @@ with col1:
     st.markdown("### 🤖 LLM Assistant")
     render_chat_interface()
     
-with col2:
-    st.markdown(f"### 🚀 {tool_options[selected_tool_id]}")
-    st.info(f"🛠 Currently using: `{selected_tool_id}`")
-    TOOL_RENDER[selected_tool_id]()

@@ -34,6 +34,7 @@ def render_chat_interface():
         st.session_state.last_tool = None
 
     # Available files list
+    """
     with st.sidebar.expander("📁 Available project files", expanded=False):
         ignored_dirs = {"venv", ".venv", "env", "__pycache__", ".git", ".mypy_cache", ".pytest_cache", ".idea", ".vscode"}
         try:
@@ -54,7 +55,7 @@ def render_chat_interface():
                 st.info("No `.py`, `.java`, or `.xml` files found in the project directory.")
         except Exception as e:
             st.error(f"Error reading directory: {e}")
-
+    """
     # Chat input box
     user_input = st.chat_input("Ask something...")
 

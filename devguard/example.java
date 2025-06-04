@@ -5,6 +5,8 @@ import java.util.Date; // Unused import
 
 public class BadCode {
 
+
+
     private String unusedField; // Potentially unused field
 
     // Method with too many parameters
@@ -37,6 +39,7 @@ public class BadCode {
         }
     }
 
+
     public void anotherMethod() {
         List<String> items = new ArrayList<>();
         if (items.isEmpty()) { // Can be simplified by some rules
@@ -48,7 +51,6 @@ public class BadCode {
             System.out.println("More than 5 items");
         }
     }
-
     // Potentially unused private method
     private void utilityMethod() {
         System.out.println("This might be unused.");
@@ -61,3 +63,5 @@ public class BadCode {
         bc.anotherMethod();
     }
 }
+
+

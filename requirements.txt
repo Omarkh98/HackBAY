@@ -24,7 +24,7 @@ charset-normalizer==3.4.2
 click==8.2.1
 cryptography==45.0.3
 dataclasses-json==0.6.7
--e git+https://github.com/Omarkh98/HackBAY.git@62750252e89930507b6b82a7fad07fd86860d788#egg=devguard_cli
+-e git+https://github.com/Omarkh98/HackBAY.git@0c66a63c60d2521a9f7e7e325abef3c6d2f08ddc#egg=devguard_cli
 distro==1.9.0
 dotenv==0.9.9
 duckduckgo_search==8.0.2
@@ -80,10 +80,10 @@ multidict==6.4.4
 mypy==1.16.0
 mypy_extensions==1.1.0
 narwhals==1.41.0
-numpy==2.2.6
+numpy==1.26.2
 oauthlib==3.2.2
 ollama==0.5.1
--e git+https://github.com/Omarkh98/HackBAY.git@62750252e89930507b6b82a7fad07fd86860d788#egg=open_deep_research&subdirectory=devguard/tools/deep-research/open_deep_research-main
+-e git+https://github.com/Omarkh98/HackBAY.git@0c66a63c60d2521a9f7e7e325abef3c6d2f08ddc#egg=open_deep_research&subdirectory=devguard/tools/deep-research/open_deep_research-main
 openai==1.84.0
 orjson==3.10.18
 ormsgpack==1.10.0

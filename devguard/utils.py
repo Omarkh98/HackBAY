@@ -4,6 +4,7 @@ import importlib
 import re
 from typing import Optional, Dict, Callable
 
+
 def load_tool_metadata(folder_path: str) -> Dict[str, dict]:
     metadata = {}
     for filename in os.listdir(folder_path):

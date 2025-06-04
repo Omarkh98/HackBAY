@@ -2,52 +2,31 @@
 
 import streamlit as st
 import threading
-import os
 import pandas as pd
+import time
 
 from utils import load_tool_metadata, build_tool_render_map
 from frontend.llm_assistant_ui import render_chat_interface
-from tools.library_license_checker.main import check_licenses
-from tools.internal_guideline_compliance_checker.main import check_compliance
 from file_watcher import start_file_watcher
-from file_event_queue import file_event_queue  # Shared queue between thread and UI
+from file_event_queue import file_event_queue # shared queue
 
-# --- Streamlit Page Setup ---
+# --- Streamlit Setup ---
 st.set_page_config(page_title="🧠 AI Dev Toolkit", layout="wide")
+st.title("DevHero 🦸🏼‍♀️")
 
+# Style tweaks
 st.markdown("""
     <style>
         html { font-size: 12px; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("DevHero 🦸🏼‍♀️")
-
-# --- Start Watcher Thread ONCE ---
+# --- Start Watcher Thread Once ---
 if "watcher_started" not in st.session_state:
     threading.Thread(target=start_file_watcher, daemon=True).start()
     st.session_state["watcher_started"] = True
 
-# --- Check for file changes from Queue ---
-if not file_event_queue.empty():
-    file_path = file_event_queue.get()
-    file_ext = os.path.splitext(file_path)[1]
-    print(f"📂 Processing changed file: {file_path}")
-
-    results = [("📜 Library License Check", check_licenses(file_path))]
-
-    if file_ext in [".py", ".xml", ".java"]:
-        compliance = check_compliance(file_path, output_format="json")
-        results.append(("📏 Guideline Compliance Check", compliance))
-
-    st.session_state["latest_tool_outputs"] = {
-        "file": file_path,
-        "results": results
-    }
-
-    st.experimental_rerun()
-
-# --- Load Metadata and Tool UIs ---
+# --- Load Tools ---
 tool_metadata = load_tool_metadata("devguard/tool_metadata/")
 TOOL_RENDER = build_tool_render_map(tool_metadata)
 
@@ -79,15 +58,25 @@ with col2:
     else:
         st.info("👈 Select an agent to activate its tools.")
 
-# --- Display Auto Results from Watcher ---
-if "latest_tool_outputs" in st.session_state:
-    file_path = st.session_state["latest_tool_outputs"]["file"]
-    st.markdown("### 🕵️ Auto Check: File Changed")
-    st.success(f"📄 `{file_path}` changed")
+# --- Display Auto Results from Watcher (using a placeholder for dynamic updates) ---
+st.markdown("### 🕵️ Auto Check: File Changed")
+output_placeholder = st.empty() # Create an empty placeholder
 
-    for label, result in st.session_state["latest_tool_outputs"]["results"]:
-        st.markdown(f"#### {label}")
-        if isinstance(result, list) and result:
-            st.dataframe(pd.DataFrame(result), use_container_width=True)
-        else:
-            st.warning("⚠️ No data found or invalid format.")
+# This loop will continuously try to update the content
+while True:
+    if not file_event_queue.empty():
+        event_data = file_event_queue.get()
+        st.session_state["latest_tool_outputs"] = event_data
+        
+        with output_placeholder.container(): # Update the content within the placeholder
+            file_path = event_data["file"] # Use event_data directly
+            st.success(f"📄 {file_path} changed")
+
+            for label, result in event_data["results"]:
+                st.markdown(f"#### {label}")
+                if isinstance(result, list) and result:
+                    st.dataframe(pd.DataFrame(result), use_container_width=True)
+                else:
+                    st.warning("⚠️ No data found or invalid format.")
+    
+    time.sleep(1) # Poll every 1 second. Adjust as needed.

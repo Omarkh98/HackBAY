@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 import re
+import pandas as pd
 
 client = OpenAI()
 

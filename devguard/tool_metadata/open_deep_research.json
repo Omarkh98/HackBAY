@@ -1,5 +1,5 @@
 {
-  "name": "deep_research_tool",
+  "name": "deep-research",
   "display_name": "Deep Research Tool",
   "description": "Conducts deep research on a given DATEV guideline, policy, or software-rule topic and returns a structured report.",
   "keywords": [

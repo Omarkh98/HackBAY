@@ -6,8 +6,6 @@ import pandas as pd
 from tools.code_review.main import code_review
 
 def render():
-    st.subheader("📂 Code Review Tool")
-
     path = st.text_input("Enter path to file or folder", value="devguard")
     if st.button("🔍 Run Code Review"):
         if not os.path.exists(path):

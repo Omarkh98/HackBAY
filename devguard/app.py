@@ -59,7 +59,7 @@ with col2:
         st.info("👈 Select an agent to activate its tools.")
 
 # --- Display Auto Results from Watcher (using a placeholder for dynamic updates) ---
-st.markdown("### 🕵️ Auto Check: File Changed")
+st.markdown("### 🕵️ Auto Checker:")
 output_placeholder = st.empty() # Create an empty placeholder
 
 # This loop will continuously try to update the content

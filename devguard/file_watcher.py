@@ -28,12 +28,11 @@ def on_file_change(file_path):
     file_ext = os.path.splitext(file_path)[1]
     results = []
 
-    # Run license checker
-    license_result = check_licenses(file_path)
-    results.append(("📜 Library License Check", license_result))
-
     # Run compliance check for supported files
     if file_ext in [".py", ".xml", ".java"]:
+        # Run license checker
+        license_result = check_licenses(file_path)
+        results.append(("📜 Library License Check", license_result))
         compliance_result = check_compliance(file_path, output_format="json")
         results.append(("📏 Guideline Compliance Check", compliance_result))
 

@@ -1,0 +1,27 @@
+{
+    "name": "code_review",
+    "display_name": "Code Review",
+    "description": "Runs all tools (license check, guideline check, etc.) over your codebase.",
+    "keywords": ["code review", "meta", "tool orchestration"],
+    "input_type": "code_directory",
+    "output_type": "review_summary",
+    "entry_point": "devguard/tools/code_review/main.py",
+    "cli_options": {
+      "--json": "Export output as JSON",
+      "--md": "Export output as Markdown"
+    },
+    "functions": [
+      {
+        "name": "code_review",
+        "description": "Runs all internal tools and aggregates their output.",
+        "arguments": {
+          "path": "Directory to scan",
+          "output_format": "text | json | markdown"
+        },
+        "returns": {
+          "type": "object",
+          "description": "Combined results from all enabled tools"
+        }
+      }
+    ]
+  }
